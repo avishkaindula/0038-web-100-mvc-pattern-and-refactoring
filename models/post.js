@@ -33,6 +33,32 @@ class Post {
     }
   }
 
+  static async fetchAll() {
+    const posts = await db.getDb().collection("posts").find().toArray();
+    return posts;
+  }
+  // This is to fetch a list of posts.
+  // But we're not instantiate this post-class before we wanna call this method.
+  // For this we need to use a feature on JS classes called "static methods."
+  // We don't call them on the instantiated object, but instead on the class itself.
+  // We can create static methods by using the static keyword.
+
+  async fetch() {
+    if (!this.id) {
+      return;
+    }
+
+    const postDocument = await db
+      .getDb()
+      .collection("posts")
+      .findOne({ _id: this.id });
+
+    this.title = postDocument.title;
+    this.content = postDocument.content;
+    // This will extract title and content from database and assign them to title and content
+    // of the objects created by this class.
+  }
+
   async save() {
     let result;
 

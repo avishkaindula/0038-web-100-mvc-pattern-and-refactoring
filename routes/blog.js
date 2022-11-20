@@ -1,12 +1,14 @@
 const express = require("express");
-const mongodb = require("mongodb");
 
-const db = require("../data/database");
+// const mongodb = require("mongodb");
+// const db = require("../data/database");
+// const ObjectId = mongodb.ObjectId;
+// We can get rid of this three now as we've moved them to the post.js file.
+
 const Post = require("../models/post");
 // This is how we export the post.js file
 // We need to name this on uppercase letters as we export classes from this files.
 
-const ObjectId = mongodb.ObjectId;
 const router = express.Router();
 
 router.get("/", function (req, res) {
@@ -18,7 +20,13 @@ router.get("/admin", async function (req, res) {
     return res.status(401).render("401");
   }
 
-  const posts = await db.getDb().collection("posts").find().toArray();
+  // const posts = await db.getDb().collection("posts").find().toArray();
+  // We can move this line to the fetchAll() static method on post.js modules files.
+  const posts = await Post.fetchAll();
+  // We called save and delete on existing post objects.
+  // We first created a post and called save on that created post.
+  // But here, we're calling fetchAll directly on the class itself.
+  // We've done this by using a static method we defined on the class on the post.js file.
 
   let sessionInputData = req.session.inputData;
 
@@ -81,11 +89,21 @@ router.post("/posts", async function (req, res) {
 });
 
 router.get("/posts/:id/edit", async function (req, res) {
-  const postId = new ObjectId(req.params.id);
-  const post = await db.getDb().collection("posts").findOne({ _id: postId });
+  // const postId = new ObjectId(req.params.id);
+  // const post = await db.getDb().collection("posts").findOne({ _id: postId });
+  // We can move this code to the fetch() method on the Post class of post.js file.
 
-  if (!post) {
-    return res.render("404"); // 404.ejs is missing at this point - it will be added later!
+  const post = new Post(null, null, req.params.id);
+  await post.fetch();
+  // We can trigger the fetch() function inside the post like this.
+
+  // if (!post) {
+  //   return res.render("404"); // 404.ejs is missing at this point - it will be added later!
+  // }
+  // This won't valid anymore because there will always be a post now.
+  // So instead we wanna check whether post.title or post.content is missing.
+  if (!post.title || !post.content) {
+    return res.render("404");
   }
 
   let sessionInputData = req.session.inputData;

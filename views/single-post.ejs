@@ -5,7 +5,11 @@
   <%- include('includes/header.ejs') %>
   <main>
     <%- include('includes/post-form', { 
-      submitUrl: '/posts/' + post._id + '/edit', 
+      // submitUrl: '/posts/' + post._id + '/edit', 
+      submitUrl: '/posts/' + post.id + '/edit', 
+      // We're sending a class based object we created in the post.js on the modules folder into this view.
+      // In there, we've used .id instead of ._id
+      // Therefor, we need to use .id here also.
       hasError: inputData.hasError, 
       errorMessage: inputData.message, 
       title: inputData.title, 
