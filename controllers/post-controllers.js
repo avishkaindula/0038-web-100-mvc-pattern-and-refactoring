@@ -6,6 +6,9 @@
 const Post = require("../models/post");
 // As getAdmin relies on Post, we need to import it like this.
 
+const validationSession = require("../util/validation-session");
+const validation = require("../util/validation");
+
 function getHome(req, res) {
   res.render("welcome", { csrfToken: req.csrfToken() });
 }
@@ -23,21 +26,28 @@ async function getAdmin(req, res) {
   // But here, we're calling fetchAll directly on the class itself.
   // We've done this by using a static method we defined on the class on the post.js file.
 
-  let sessionInputData = req.session.inputData;
+  // let sessionInputData = req.session.inputData;
+  // if (!sessionInputData) {
+  //   sessionInputData = {
+  //     hasError: false,
+  //     title: "",
+  //     content: "",
+  //   };
+  // }
+  // req.session.inputData = null;
+  // We can move this logic to the validation-session.js file.
 
-  if (!sessionInputData) {
-    sessionInputData = {
-      hasError: false,
-      title: "",
-      content: "",
-    };
-  }
-
-  req.session.inputData = null;
+  // This is how we import the above logic back into post-controllers.js file.
+  sessionErrorData = validationSession.getSessionErrorData(req, {
+    title: "",
+    content: "",
+    // These are the values needed for the ...defaultValues spread operator on the
+    // getSessionErrorData.
+  });
 
   res.render("admin", {
     posts: posts,
-    inputData: sessionInputData,
+    inputData: sessionErrorData,
     csrfToken: req.csrfToken(),
   });
 }
@@ -47,19 +57,24 @@ async function createPost(req, res) {
   const enteredContent = req.body.content;
 
   if (
-    !enteredTitle ||
-    !enteredContent ||
-    enteredTitle.trim() === "" ||
-    enteredContent.trim() === ""
+    // !enteredTitle ||
+    // !enteredContent ||
+    // enteredTitle.trim() === "" ||
+    // enteredContent.trim() === ""
+    !validation.postIsValid(enteredTitle, enteredContent)
   ) {
-    req.session.inputData = {
-      hasError: true,
-      message: "Invalid input - please check your data.",
-      title: enteredTitle,
-      content: enteredContent,
-    };
+    validationSession.flashErrorsToSession(
+      req,
+      {
+        message: "Invalid input - please check your data.",
+        title: enteredTitle,
+        content: enteredContent,
+      },
+      function () {
+        res.redirect("/admin");
+      }
+    );
 
-    res.redirect("/admin");
     return; // or return res.redirect('/admin'); => Has the same effect
   }
 
@@ -101,21 +116,26 @@ async function getSinglePost(req, res) {
     return res.render("404");
   }
 
-  let sessionInputData = req.session.inputData;
+  // let sessionInputData = req.session.inputData;
+  // if (!sessionInputData) {
+  //   sessionInputData = {
+  //     hasError: false,
+  //     title: post.title,
+  //     content: post.content,
+  //   };
+  // }
+  // req.session.inputData = null;
 
-  if (!sessionInputData) {
-    sessionInputData = {
-      hasError: false,
-      title: post.title,
-      content: post.content,
-    };
-  }
-
-  req.session.inputData = null;
+  sessionErrorData = validationSession.getSessionErrorData(req, {
+    title: post.title,
+    content: post.content,
+    // These are the values needed for the ...defaultValues spread operator on the
+    // getSessionErrorData.
+  });
 
   res.render("single-post", {
     post: post,
-    inputData: sessionInputData,
+    inputData: sessionErrorData,
     csrfToken: req.csrfToken(),
   });
 }
@@ -127,19 +147,39 @@ async function updatePost(req, res) {
   // Now this part will be done on the post.js file.
 
   if (
-    !enteredTitle ||
-    !enteredContent ||
-    enteredTitle.trim() === "" ||
-    enteredContent.trim() === ""
+    // !enteredTitle ||
+    // !enteredContent ||
+    // enteredTitle.trim() === "" ||
+    // enteredContent.trim() === ""
+    // We can move this to validation.js file
+    !validation.postIsValid(enteredTitle, enteredContent)
+    // Because we wanna check whether this is "NOT" valid, we need to add ! in front of this code.
+    // enteredTitle and enteredContent are the values needed for title and content parameters of
+    // postIsValid function.
   ) {
-    req.session.inputData = {
-      hasError: true,
-      message: "Invalid input - please check your data.",
-      title: enteredTitle,
-      content: enteredContent,
-    };
+    // req.session.inputData = {
+    //   hasError: true,
+    //   message: "Invalid input - please check your data.",
+    //   title: enteredTitle,
+    //   content: enteredContent,
+    // };
+    // We can move this logic also to the validation-session.js file.
+    validationSession.flashErrorsToSession(
+      req,
+      {
+        message: "Invalid input - please check your data.",
+        title: enteredTitle,
+        content: enteredContent,
+        // This are the key-value pairs that are passed to the ...data spread operator
+        // on the flashErrorsToSession function on validation-session.js
+      },
+      function () {
+        res.redirect(`/posts/${req.params.id}/edit`);
+        // This is the function that is passed to the action parameter
+        // on the flashErrorsToSession function on validation-session.js
+      }
+    );
 
-    res.redirect(`/posts/${req.params.id}/edit`);
     return;
   }
 
