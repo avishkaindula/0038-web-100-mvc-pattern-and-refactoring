@@ -16,6 +16,7 @@ const authRoutes = require("./routes/auth");
 const blogRoutes = require("./routes/blog");
 
 const authMiddleware = require("./middlewares/auth-middleware");
+const addCSRFTokenMiddleware = require("./middlewares/csrf-token-middleware");
 
 const mongoDbSessionStore = sessionConfig.createSessionStore(session);
 // This is how we execute the createSessionStore function inside the config.js file.
@@ -56,6 +57,11 @@ app.use(session(sessionConfig.createSessionConfig(mongoDbSessionStore)));
 
 app.use(csrf());
 
+app.use(addCSRFTokenMiddleware);
+// This will now add CSRF token to the res.locals field.
+// Now we need to access this on header.ejs, post-form.ejs,
+// post-item.ejs, login.ejs and signup.ejs using locals.csrfToken
+
 // app.use(async function (req, res, next) {
 //   const user = req.session.user;
 //   const isAuth = req.session.isAuthenticated;
@@ -71,12 +77,12 @@ app.use(csrf());
 // We should move this code to auth-middleware file.
 app.use(authMiddleware);
 // So now we can use it as above.
-// As we directly define the middleware function itself, we don't need 
+// As we directly define the middleware function itself, we don't need
 // to execute this like => app.use(authMiddleware()); this.
 // This function will be executed by express itself when we get incoming requests.
-// all other middlewares that come from third party packages 
+// all other middlewares that come from third party packages
 // are actually not middlewares themselves, they are configuration functions.
-// Therefor we need to execute those functions. They can also take configuration 
+// Therefor we need to execute those functions. They can also take configuration
 // options to. for example => app.use(csrf({}));
 // we can pass configuration option into the {} of csrf function.
 // Those functions give the actual middleware we need when we "execute" them.

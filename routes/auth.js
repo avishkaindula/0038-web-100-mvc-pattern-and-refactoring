@@ -21,7 +21,8 @@ router.get("/signup", function (req, res) {
 
   res.render("signup", {
     inputData: sessionInputData,
-    csrfToken: req.csrfToken(),
+    // csrfToken: req.csrfToken(),
+    // We can remove csrfToken from here as we now pass it trough res.locals
   });
 });
 
@@ -39,7 +40,7 @@ router.get("/login", function (req, res) {
   req.session.inputData = null;
   res.render("login", {
     inputData: sessionInputData,
-    csrfToken: req.csrfToken(),
+    // csrfToken: req.csrfToken(),
   });
 });
 

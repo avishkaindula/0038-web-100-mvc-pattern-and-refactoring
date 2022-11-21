@@ -10,7 +10,8 @@ const validationSession = require("../util/validation-session");
 const validation = require("../util/validation");
 
 function getHome(req, res) {
-  res.render("welcome", { csrfToken: req.csrfToken() });
+  // res.render("welcome", { csrfToken: req.csrfToken() });
+  res.render("welcome");
 }
 
 async function getAdmin(req, res) {
@@ -48,7 +49,8 @@ async function getAdmin(req, res) {
   res.render("admin", {
     posts: posts,
     inputData: sessionErrorData,
-    csrfToken: req.csrfToken(),
+    // csrfToken: req.csrfToken(),
+    // We can remove csrfToken from here as we now add them through res.locals
   });
 }
 
@@ -136,7 +138,7 @@ async function getSinglePost(req, res) {
   res.render("single-post", {
     post: post,
     inputData: sessionErrorData,
-    csrfToken: req.csrfToken(),
+    // csrfToken: req.csrfToken(),
   });
 }
 
